@@ -1,539 +1,445 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web UI Anatomy Inspector</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0f172a; /* Dark background for the app framing */
-            color: #f8fafc;
-            margin: 0;
-            overflow: hidden; /* Prevent body scroll, handle scroll in mockup */
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interactive Web Component Inspector</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root{
+    --blue:#2563eb;
+    --blue-bg:rgba(37,99,235,.08);
+    --green:#16a34a;
+    --green-bg:rgba(22,163,74,.09);
+    --purple:#9333ea;
+    --purple-bg:rgba(147,51,234,.08);
+    --amber:#d97706;
+    --panel:#0f172a;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#e2e8f0;color:#0f172a;overflow:hidden}
+  button,input,select{font:inherit}
+  .app{height:100vh;display:grid;grid-template-columns:70% 30%}
+  .mockup{height:100vh;overflow-y:auto;background:#fff;position:relative}
+  .inspector{height:100vh;background:#0f172a;color:#e2e8f0;display:flex;flex-direction:column;box-shadow:-8px 0 24px rgba(15,23,42,.18);z-index:100}
+  .site-header{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-bottom:1px solid #e2e8f0}
+  .site-nav{height:72px;display:flex;align-items:center;gap:28px;padding:0 34px}
+  .logo{font-size:22px;font-weight:900;letter-spacing:-.05em;color:#111827}
+  .nav-links{display:flex;gap:22px;align-items:center;flex:1}
+  .nav-link{font-size:14px;font-weight:600;color:#475569;text-decoration:none}
+  .nav-actions{display:flex;gap:8px;align-items:center}
+  .icon-btn{width:40px;height:40px;border-radius:999px;border:1px solid #e2e8f0;background:#fff;display:grid;place-items:center;position:relative;color:#334155}
+  .icon-btn:hover{background:#f8fafc}
+  .badge{position:absolute;right:-2px;top:-2px;min-width:17px;height:17px;padding:0 4px;border-radius:999px;background:#111827;color:#fff;font-size:9px;font-weight:800;display:grid;place-items:center;border:2px solid #fff}
+  .hero{margin:28px 34px 30px;min-height:270px;border-radius:24px;overflow:hidden;position:relative;background:linear-gradient(115deg,#111827,#334155 52%,#64748b);color:white}
+  .hero-content{position:relative;z-index:2;padding:48px;max-width:600px}
+  .hero-kicker{font-size:12px;text-transform:uppercase;letter-spacing:.18em;font-weight:800;color:#cbd5e1}
+  .hero h1{font-size:42px;line-height:1.02;letter-spacing:-.045em;margin:10px 0 14px;font-weight:900}
+  .hero p{color:#dbeafe;line-height:1.6;margin:0 0 22px}
+  .hero-visual{position:absolute;right:0;top:0;width:48%;height:100%;background:
+    radial-gradient(circle at 65% 45%,rgba(255,255,255,.22),transparent 16%),
+    radial-gradient(circle at 55% 58%,rgba(255,255,255,.13),transparent 29%),
+    linear-gradient(135deg,transparent 0 25%,rgba(255,255,255,.06) 25% 26%,transparent 26% 100%)}
+  .hero-visual:after{content:"NEW SEASON";position:absolute;right:42px;bottom:35px;font-size:52px;font-weight:900;letter-spacing:-.06em;color:rgba(255,255,255,.07);transform:rotate(-8deg)}
+  .content{display:grid;grid-template-columns:225px 1fr;gap:28px;padding:0 34px 40px}
+  .sidebar{border:1px solid #e2e8f0;border-radius:18px;padding:20px;background:#fff;height:max-content;position:sticky;top:100px}
+  .sidebar h2{font-size:15px;font-weight:800;margin:0 0 18px}
+  .filter-group{padding:17px 0;border-top:1px solid #e2e8f0}
+  .filter-group:first-of-type{border-top:0;padding-top:0}
+  .filter-label{font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:#64748b;margin-bottom:12px}
+  .check-row{display:flex;align-items:center;gap:9px;margin:9px 0;font-size:13px;color:#475569}
+  .check-row input{accent-color:#111827}
+  .range-wrap{display:flex;flex-direction:column;gap:8px}
+  .range-wrap input{width:100%;accent-color:#111827}
+  .range-values{display:flex;justify-content:space-between;font-size:11px;color:#64748b}
+  .sort-wrap{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+  .sort-wrap h2{margin:0;font-size:20px;font-weight:900;letter-spacing:-.03em}
+  .sort-select{border:1px solid #cbd5e1;border-radius:10px;padding:9px 32px 9px 11px;font-size:12px;color:#334155;background:#fff}
+  .product-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+  .card{border:1px solid #e2e8f0;border-radius:18px;background:#fff;overflow:hidden;position:relative;transition:.2s}
+  .card:hover{box-shadow:0 10px 30px rgba(15,23,42,.08);transform:translateY(-1px)}
+  .product-media{height:180px;background:#f1f5f9;position:relative;display:grid;place-items:center}
+  .product-img{width:72%;height:76%;border-radius:15px;background:linear-gradient(135deg,#dbeafe,#94a3b8);box-shadow:inset 0 0 0 1px rgba(255,255,255,.7),0 12px 24px rgba(15,23,42,.1);position:relative}
+  .product-img:after{content:"";position:absolute;left:22%;right:22%;bottom:17%;height:13%;background:rgba(255,255,255,.5);border-radius:999px}
+  .wish-btn{position:absolute;right:12px;top:12px;width:34px;height:34px;border-radius:999px;border:1px solid #e2e8f0;background:rgba(255,255,255,.94);display:grid;place-items:center;color:#64748b}
+  .card-body{padding:15px}
+  .eyebrow{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:#94a3b8}
+  .product-name{font-size:15px;font-weight:800;color:#1e293b;margin:4px 0 8px}
+  .rating{font-size:12px;color:#f59e0b;display:flex;gap:5px;align-items:center;margin-bottom:9px}
+  .rating span{color:#64748b;font-size:11px}
+  .price{font-size:18px;font-weight:900;color:#0f172a;margin-bottom:12px}
+  .card-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .primary,.secondary{border-radius:9px;padding:9px 8px;font-size:11px;font-weight:800;border:1px solid transparent}
+  .primary{background:#111827;color:white}
+  .secondary{background:#f8fafc;color:#334155;border-color:#e2e8f0}
+  .carousel{display:flex;justify-content:space-between;position:absolute;left:14px;right:14px;top:50%;transform:translateY(-50%);z-index:3;pointer-events:none}
+  .carousel button{pointer-events:auto;width:32px;height:32px;border-radius:999px;background:rgba(255,255,255,.95);border:1px solid #e2e8f0;display:grid;place-items:center;box-shadow:0 3px 10px rgba(15,23,42,.1)}
+  .footer{border-top:1px solid #e2e8f0;margin-top:5px;padding:26px 34px 40px;display:flex;justify-content:space-between;color:#64748b;font-size:11px}
+  .footer-links{display:flex;gap:18px}
+  .footer a{color:#64748b;text-decoration:none}
 
-        /* The inspectable element styles */
-        .inspectable {
-            position: relative;
-            cursor: crosshair;
-            transition: all 0.2s ease-in-out;
-        }
-
-        /* Visual cue that it's inspectable when hovering */
-        .inspectable.hovered {
-            outline: 2px dashed #3b82f6 !important;
-            outline-offset: -2px;
-            background-color: rgba(59, 130, 246, 0.1) !important;
-            z-index: 10;
-        }
-
-        /* Add a subtle label tag on hover */
-        .inspectable.hovered::after {
-            content: attr(data-type);
-            position: absolute;
-            top: 0;
-            left: 0;
-            background: #3b82f6;
-            color: white;
-            font-size: 0.65rem;
-            font-weight: bold;
-            padding: 2px 6px;
-            border-bottom-right-radius: 4px;
-            z-index: 20;
-            pointer-events: none;
-        }
-
-        /* Make sure internal elements don't block the hover if they aren't inspectable themselves */
-        .inspectable > *:not(.inspectable) {
-            pointer-events: none;
-        }
-
-        /* Mockup container styling to look like a browser window */
-        .browser-window {
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-
-        /* Custom scrollbar for the mockup */
-        .mockup-scroll::-webkit-scrollbar {
-            width: 8px;
-        }
-        .mockup-scroll::-webkit-scrollbar-track {
-            background: #f1f5f9; 
-        }
-        .mockup-scroll::-webkit-scrollbar-thumb {
-            background: #cbd5e1; 
-            border-radius: 4px;
-        }
-        .mockup-scroll::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8; 
-        }
-    </style>
+  /* Annotation system */
+  [data-name]{position:relative}
+  .inspectable:hover{z-index:50}
+  .inspectable[data-category="Layout"]:hover{outline:2px solid var(--blue);outline-offset:2px;background:var(--blue-bg)}
+  .inspectable[data-category="Inputs & Actions"]:hover{outline:2px solid var(--green);outline-offset:2px;background:var(--green-bg)}
+  .inspectable[data-category="Media"]:hover{outline:2px solid var(--amber);outline-offset:2px;background:rgba(217,119,6,.08)}
+  .inspectable[data-category="Micro-Interactions"]:hover{outline:2px solid #ec4899;outline-offset:2px;background:rgba(236,72,153,.08)}
+  .inspectable[data-category="Static Content"]:hover{outline:2px solid var(--purple);outline-offset:2px;background:var(--purple-bg)}
+  .inspector-head{padding:24px 22px 20px;border-bottom:1px solid #1e293b}
+  .eyebrow-panel{font-size:10px;text-transform:uppercase;letter-spacing:.16em;color:#64748b;font-weight:800}
+  .inspector-title{font-size:20px;font-weight:900;letter-spacing:-.03em;color:#f8fafc;margin:7px 0 5px}
+  .inspector-sub{font-size:12px;line-height:1.55;color:#94a3b8}
+  .status{margin:16px 22px 0;border-radius:12px;padding:10px 12px;background:#111c30;border:1px solid #1e293b;color:#94a3b8;font-size:11px;display:flex;gap:8px;align-items:center}
+  .dot{width:7px;height:7px;border-radius:50%;background:#475569;flex:none}
+  .details{padding:22px;overflow:auto;flex:1}
+  .empty{min-height:45vh;display:grid;place-items:center;text-align:center;color:#64748b;padding:20px}
+  .empty-icon{width:48px;height:48px;border-radius:14px;background:#111c30;border:1px solid #1e293b;display:grid;place-items:center;margin:0 auto 14px;color:#64748b}
+  .empty strong{display:block;color:#cbd5e1;font-size:13px;margin-bottom:5px}
+  .empty p{font-size:11px;line-height:1.6;margin:0}
+  .info-block{margin-bottom:19px}
+  .info-label{font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:#64748b;font-weight:900;margin-bottom:7px}
+  .info-value{font-size:13px;color:#e2e8f0;line-height:1.55}
+  .category-pill{display:inline-flex;padding:5px 9px;border-radius:999px;background:#172033;border:1px solid #26344d;font-size:10px;font-weight:800}
+  .data-box{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;color:#93c5fd;background:#0b1220;border:1px solid #1e293b;border-radius:10px;padding:11px;line-height:1.7;word-break:break-word}
+  .legend{border-top:1px solid #1e293b;padding:17px 22px}
+  .legend-title{font-size:9px;text-transform:uppercase;letter-spacing:.13em;color:#64748b;font-weight:900;margin-bottom:10px}
+  .legend-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .legend-item{font-size:9px;color:#94a3b8;display:flex;align-items:center;gap:7px}
+  .legend-dot{width:8px;height:8px;border-radius:2px}
+  .blue{background:var(--blue)} .green{background:var(--green)} .amber{background:var(--amber)} .pink{background:#ec4899} .purple{background:var(--purple)}
+  @media(max-width:900px){
+    .app{grid-template-columns:62% 38%}
+    .content{grid-template-columns:170px 1fr;padding-left:18px;padding-right:18px}
+    .hero{margin-left:18px;margin-right:18px}
+    .site-nav{padding:0 18px}.nav-links{gap:12px}.nav-link:nth-child(n+4){display:none}
+    .product-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
+</style>
 </head>
-<body class="h-screen w-screen flex flex-col md:flex-row">
+<body>
+<div class="app">
+  <main class="mockup" id="storefront" aria-label="E-commerce mockup">
 
-    <!-- Left/Top Side: Inspector Panel -->
-    <div class="w-full md:w-80 lg:w-96 bg-slate-900 border-b md:border-b-0 md:border-r border-slate-700 flex flex-col h-1/3 md:h-full shrink-0 z-20 shadow-2xl relative">
-        <div class="p-6 border-b border-slate-700 bg-slate-800">
-            <h1 class="text-xl font-bold text-white flex items-center gap-2">
-                <i class="ph ph-magnifying-glass text-blue-400"></i> UI Inspector
-            </h1>
-            <p class="text-sm text-slate-400 mt-1">Hover over elements in the mockup to learn about their anatomy.</p>
+    <header class="site-header inspectable" data-name="Header / Navbar" data-category="Layout" data-desc="Global navigation container holding branding and primary wayfinding.">
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="#" class="logo nav-link" data-name="Brand Logo" data-category="Static Content" data-desc="Brand identity text that anchors the storefront and provides a route to the home page.">NOVA</a>
+        <div class="nav-links">
+          <a href="#" class="nav-link" data-name="Navigation Link" data-category="Inputs & Actions" data-desc="Text link providing direct navigation to a major storefront section.">New Arrivals</a>
+          <a href="#" class="nav-link" data-name="Navigation Link" data-category="Inputs & Actions" data-desc="Text link providing direct navigation to a major storefront section.">Collections</a>
+          <a href="#" class="nav-link" data-name="Navigation Link" data-category="Inputs & Actions" data-desc="Text link providing direct navigation to a major storefront section.">Accessories</a>
+        </div>
+        <div class="nav-actions">
+          <button class="icon-btn" type="button" aria-label="Search" data-name="Search Icon (Magnifying Glass)" data-category="Micro-Interactions" data-desc="Visual shorthand for triggering a search query.">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+          </button>
+          <button class="icon-btn" type="button" aria-label="Profile" data-name="User / Profile Icon" data-category="Micro-Interactions" data-desc="Navigational shortcut to account settings and login.">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-3.4 3.2-5.2 7-5.2s6.2 1.8 7 5.2"/></svg>
+          </button>
+          <button class="icon-btn" type="button" aria-label="Cart" data-name="Cart / Bag Icon (with notification pill)" data-category="Micro-Interactions" data-desc="Indicates current cart status and links to checkout.">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8h12l1 12H5L6 8Z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
+            <span class="badge">2</span>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <section class="hero inspectable" data-name="Hero Banner Image" data-category="Media" data-desc="Large, highly visual graphic meant to anchor the page and draw immediate attention to a promotion.">
+      <div class="hero-content">
+        <div class="hero-kicker">Fall / Winter 2026</div>
+        <h1 class="inspectable" data-name="H1 / Main Heading" data-category="Static Content" data-desc="Primary page title; critical for SEO and establishing page hierarchy.">Objects for everyday living.</h1>
+        <p class="inspectable" data-name="Paragraph / Body Text" data-category="Static Content" data-desc="Descriptive, non-interactive text providing secondary context.">Thoughtfully designed essentials with clean lines, tactile materials, and details built for daily use.</p>
+        <button class="primary" type="button" data-name="Primary Button ('Add to Cart')" data-category="Inputs & Actions" data-desc="High-contrast call-to-action driving the primary conversion goal.">Shop the collection</button>
+      </div>
+      <div class="hero-visual" aria-hidden="true"></div>
+      <div class="carousel" aria-label="Carousel navigation">
+        <button type="button" aria-label="Previous" data-name="Carousel Navigation Arrow (Previous)" data-category="Inputs & Actions" data-desc="Directional control allowing users to cycle through hidden horizontal content.">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        <button type="button" aria-label="Next" data-name="Carousel Navigation Arrow (Next)" data-category="Inputs & Actions" data-desc="Directional control allowing users to cycle through hidden horizontal content.">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <div class="content">
+      <aside class="sidebar inspectable" data-name="Sidebar Panel" data-category="Layout" data-desc="Vertical container grouping filtering and sorting controls.">
+        <h2>Filter</h2>
+        <div class="filter-group">
+          <div class="filter-label">Category</div>
+          <label class="check-row"><input type="checkbox" data-name="Checkbox (Category Filter)" data-category="Inputs & Actions" data-desc="Multi-select input allowing users to toggle specific criteria on or off."> Home</label>
+          <label class="check-row"><input type="checkbox" data-name="Checkbox (Category Filter)" data-category="Inputs & Actions" data-desc="Multi-select input allowing users to toggle specific criteria on or off."> Office</label>
+          <label class="check-row"><input type="checkbox" data-name="Checkbox (Category Filter)" data-category="Inputs & Actions" data-desc="Multi-select input allowing users to toggle specific criteria on or off."> Travel</label>
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">Price</div>
+          <div class="range-wrap">
+            <input type="range" min="20" max="300" value="180" aria-label="Maximum price" data-name="Range Slider (Price)" data-category="Inputs & Actions" data-desc="Draggable input control allowing users to select a specific numeric range.">
+            <div class="range-values"><span>$20</span><span>$300</span></div>
+          </div>
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">Availability</div>
+          <label class="check-row"><input type="checkbox" data-name="Checkbox (Category Filter)" data-category="Inputs & Actions" data-desc="Multi-select input allowing users to toggle specific criteria on or off."> In stock</label>
+        </div>
+      </aside>
+
+      <section aria-label="Products">
+        <div class="sort-wrap">
+          <h2>Featured objects</h2>
+          <select class="sort-select" aria-label="Sort By" data-name="Dropdown Select ('Sort By')" data-category="Inputs & Actions" data-desc="Expandable menu allowing users to select one option from a list.">
+            <option>Sort By</option><option>Newest</option><option>Price: Low to High</option><option>Price: High to Low</option>
+          </select>
         </div>
 
-        <div id="inspector-content" class="p-6 flex-grow overflow-y-auto">
-            <!-- Default State -->
-            <div id="default-state" class="h-full flex flex-col items-center justify-center text-center text-slate-500 opacity-100 transition-opacity duration-300">
-                <i class="ph ph-cursor-click text-4xl mb-3 text-slate-600 animate-bounce"></i>
-                <p>Move your cursor over the website on the right to inspect its components.</p>
+        <div class="product-grid">
+          <article class="card inspectable" data-name="Product Card" data-category="Layout" data-desc="A modular container grouping an image, metadata, and actions for a single item.">
+            <div class="product-media">
+              <div class="product-img inspectable" role="img" aria-label="Product thumbnail" data-name="Product Thumbnail Image" data-category="Media" data-desc="Visual representation of the specific product being sold."></div>
+              <button class="wish-btn" type="button" aria-label="Add to wishlist" data-name="Wishlist Icon (Heart)" data-category="Micro-Interactions" data-desc="Micro-interaction allowing users to save items for later without adding to cart.">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 8.7c0 5-8.8 10.4-8.8 10.4S3.2 13.7 3.2 8.7A4.7 4.7 0 0 1 12 6.3a4.7 4.7 0 0 1 8.8 2.4Z"/></svg>
+              </button>
             </div>
+            <div class="card-body">
+              <div class="eyebrow">Desk Objects</div>
+              <div class="product-name">Arc Desk Lamp</div>
+              <div class="rating inspectable" data-name="Star Rating (Data)" data-category="Static Content" data-desc="Visual metadata summarizing user reviews and establishing social proof.">
+                ★★★★★ <span>4.9 (128)</span>
+              </div>
+              <div class="price inspectable" data-name="Price Text (Data)" data-category="Static Content" data-desc="Highly formatted static metadata representing the cost of the item.">$128.00</div>
+              <div class="card-actions">
+                <button class="primary" type="button" data-name="Primary Button ('Add to Cart')" data-category="Inputs & Actions" data-desc="High-contrast call-to-action driving the primary conversion goal.">Add to Cart</button>
+                <button class="secondary" type="button" data-name="Secondary Button ('View Details')" data-category="Inputs & Actions" data-desc="Low-contrast alternative action.">View Details</button>
+              </div>
+            </div>
+          </article>
 
-            <!-- Active State (Hidden by default) -->
-            <div id="active-state" class="hidden opacity-0 transition-opacity duration-300 flex-col h-full">
-                <div class="inline-block px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs font-bold uppercase tracking-wider w-max mb-3" id="info-type">Category</div>
-                <h2 class="text-2xl font-bold text-white mb-2" id="info-title">Element Name</h2>
-                
-                <div class="space-y-4 mt-4">
-                    <div>
-                        <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-1 flex items-center gap-1">
-                            <i class="ph ph-info text-blue-400"></i> Purpose
-                        </h3>
-                        <p class="text-slate-300 text-sm leading-relaxed" id="info-purpose">Description goes here.</p>
-                    </div>
-                    
-                    <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
-                        <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1">
-                            <i class="ph ph-tree-structure text-emerald-400"></i> Key Anatomy
-                        </h3>
-                        <ul class="text-slate-400 text-sm list-disc pl-4 space-y-1" id="info-anatomy">
-                            <li>Part 1</li>
-                            <li>Part 2</li>
-                        </ul>
-                    </div>
-                </div>
+          <article class="card inspectable" data-name="Product Card" data-category="Layout" data-desc="A modular container grouping an image, metadata, and actions for a single item.">
+            <div class="product-media">
+              <div class="product-img inspectable" role="img" aria-label="Product thumbnail" data-name="Product Thumbnail Image" data-category="Media" data-desc="Visual representation of the specific product being sold." style="background:linear-gradient(135deg,#fde68a,#a16207)"></div>
+              <button class="wish-btn" type="button" aria-label="Add to wishlist" data-name="Wishlist Icon (Heart)" data-category="Micro-Interactions" data-desc="Micro-interaction allowing users to save items for later without adding to cart.">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 8.7c0 5-8.8 10.4-8.8 10.4S3.2 13.7 3.2 8.7A4.7 4.7 0 0 1 12 6.3a4.7 4.7 0 0 1 8.8 2.4Z"/></svg>
+              </button>
             </div>
+            <div class="card-body">
+              <div class="eyebrow">Kitchen</div>
+              <div class="product-name">Stone Pour-Over</div>
+              <div class="rating inspectable" data-name="Star Rating (Data)" data-category="Static Content" data-desc="Visual metadata summarizing user reviews and establishing social proof.">★★★★☆ <span>4.7 (94)</span></div>
+              <div class="price inspectable" data-name="Price Text (Data)" data-category="Static Content" data-desc="Highly formatted static metadata representing the cost of the item.">$74.00</div>
+              <div class="card-actions">
+                <button class="primary" type="button" data-name="Primary Button ('Add to Cart')" data-category="Inputs & Actions" data-desc="High-contrast call-to-action driving the primary conversion goal.">Add to Cart</button>
+                <button class="secondary" type="button" data-name="Secondary Button ('View Details')" data-category="Inputs & Actions" data-desc="Low-contrast alternative action.">View Details</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="card inspectable" data-name="Product Card" data-category="Layout" data-desc="A modular container grouping an image, metadata, and actions for a single item.">
+            <div class="product-media">
+              <div class="product-img inspectable" role="img" aria-label="Product thumbnail" data-name="Product Thumbnail Image" data-category="Media" data-desc="Visual representation of the specific product being sold." style="background:linear-gradient(135deg,#fecdd3,#9f1239)"></div>
+              <button class="wish-btn" type="button" aria-label="Add to wishlist" data-name="Wishlist Icon (Heart)" data-category="Micro-Interactions" data-desc="Micro-interaction allowing users to save items for later without adding to cart.">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 8.7c0 5-8.8 10.4-8.8 10.4S3.2 13.7 3.2 8.7A4.7 4.7 0 0 1 12 6.3a4.7 4.7 0 0 1 8.8 2.4Z"/></svg>
+              </button>
+            </div>
+            <div class="card-body">
+              <div class="eyebrow">Travel</div>
+              <div class="product-name">Carry-All Tote</div>
+              <div class="rating inspectable" data-name="Star Rating (Data)" data-category="Static Content" data-desc="Visual metadata summarizing user reviews and establishing social proof.">★★★★★ <span>4.8 (211)</span></div>
+              <div class="price inspectable" data-name="Price Text (Data)" data-category="Static Content" data-desc="Highly formatted static metadata representing the cost of the item.">$96.00</div>
+              <div class="card-actions">
+                <button class="primary" type="button" data-name="Primary Button ('Add to Cart')" data-category="Inputs & Actions" data-desc="High-contrast call-to-action driving the primary conversion goal.">Add to Cart</button>
+                <button class="secondary" type="button" data-name="Secondary Button ('View Details')" data-category="Inputs & Actions" data-desc="Low-contrast alternative action.">View Details</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="card inspectable" data-name="Product Card" data-category="Layout" data-desc="A modular container grouping an image, metadata, and actions for a single item.">
+            <div class="product-media">
+              <div class="product-img inspectable" role="img" aria-label="Product thumbnail" data-name="Product Thumbnail Image" data-category="Media" data-desc="Visual representation of the specific product being sold." style="background:linear-gradient(135deg,#bbf7d0,#166534)"></div>
+              <button class="wish-btn" type="button" aria-label="Add to wishlist" data-name="Wishlist Icon (Heart)" data-category="Micro-Interactions" data-desc="Micro-interaction allowing users to save items for later without adding to cart.">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 8.7c0 5-8.8 10.4-8.8 10.4S3.2 13.7 3.2 8.7a4.7 4.7 0 0 1 8.8-2.4Z"/></svg>
+              </button>
+            </div>
+            <div class="card-body">
+              <div class="eyebrow">Home</div>
+              <div class="product-name">Linen Throw</div>
+              <div class="rating inspectable" data-name="Star Rating (Data)" data-category="Static Content" data-desc="Visual metadata summarizing user reviews and establishing social proof.">★★★★☆ <span>4.6 (77)</span></div>
+              <div class="price inspectable" data-name="Price Text (Data)" data-category="Static Content" data-desc="Highly formatted static metadata representing the cost of the item.">$58.00</div>
+              <div class="card-actions">
+                <button class="primary" type="button" data-name="Primary Button ('Add to Cart')" data-category="Inputs & Actions" data-desc="High-contrast call-to-action driving the primary conversion goal.">Add to Cart</button>
+                <button class="secondary" type="button" data-name="Secondary Button ('View Details')" data-category="Inputs & Actions" data-desc="Low-contrast alternative action.">View Details</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="card inspectable" data-name="Product Card" data-category="Layout" data-desc="A modular container grouping an image, metadata, and actions for a single item.">
+            <div class="product-media">
+              <div class="product-img inspectable" role="img" aria-label="Product thumbnail" data-name="Product Thumbnail Image" data-category="Media" data-desc="Visual representation of the specific product being sold." style="background:linear-gradient(135deg,#ddd6fe,#6d28d9)"></div>
+              <button class="wish-btn" type="button" aria-label="Add to wishlist" data-name="Wishlist Icon (Heart)" data-category="Micro-Interactions" data-desc="Micro-interaction allowing users to save items for later without adding to cart.">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 8.7c0 5-8.8 10.4-8.8 10.4S3.2 13.7 3.2 8.7A4.7 4.7 0 0 1 12 6.3a4.7 4.7 0 0 1 8.8 2.4Z"/></svg>
+              </button>
+            </div>
+            <div class="card-body">
+              <div class="eyebrow">Office</div>
+              <div class="product-name">Focus Notebook</div>
+              <div class="rating inspectable" data-name="Star Rating (Data)" data-category="Static Content" data-desc="Visual metadata summarizing user reviews and establishing social proof.">★★★★★ <span>5.0 (51)</span></div>
+              <div class="price inspectable" data-name="Price Text (Data)" data-category="Static Content" data-desc="Highly formatted static metadata representing the cost of the item.">$32.00</div>
+              <div class="card-actions">
+                <button class="primary" type="button" data-name="Primary Button ('Add to Cart')" data-category="Inputs & Actions" data-desc="High-contrast call-to-action driving the primary conversion goal.">Add to Cart</button>
+                <button class="secondary" type="button" data-name="Secondary Button ('View Details')" data-category="Inputs & Actions" data-desc="Low-contrast alternative action.">View Details</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="card inspectable" data-name="Product Card" data-category="Layout" data-desc="A modular container grouping an image, metadata, and actions for a single item.">
+            <div class="product-media">
+              <div class="product-img inspectable" role="img" aria-label="Product thumbnail" data-name="Product Thumbnail Image" data-category="Media" data-desc="Visual representation of the specific product being sold." style="background:linear-gradient(135deg,#fed7aa,#c2410c)"></div>
+              <button class="wish-btn" type="button" aria-label="Add to wishlist" data-name="Wishlist Icon (Heart)" data-category="Micro-Interactions" data-desc="Micro-interaction allowing users to save items for later without adding to cart.">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 8.7c0 5-8.8 10.4-8.8 10.4S3.2 13.7 3.2 8.7a4.7 4.7 0 0 1 8.8 2.4Z"/></svg>
+              </button>
+            </div>
+            <div class="card-body">
+              <div class="eyebrow">Kitchen</div>
+              <div class="product-name">Oak Serving Board</div>
+              <div class="rating inspectable" data-name="Star Rating (Data)" data-category="Static Content" data-desc="Visual metadata summarizing user reviews and establishing social proof.">★★★★☆ <span>4.8 (143)</span></div>
+              <div class="price inspectable" data-name="Price Text (Data)" data-category="Static Content" data-desc="Highly formatted static metadata representing the cost of the item.">$84.00</div>
+              <div class="card-actions">
+                <button class="primary" type="button" data-name="Primary Button ('Add to Cart')" data-category="Inputs & Actions" data-desc="High-contrast call-to-action driving the primary conversion goal.">Add to Cart</button>
+                <button class="secondary" type="button" data-name="Secondary Button ('View Details')" data-category="Inputs & Actions" data-desc="Low-contrast alternative action.">View Details</button>
+              </div>
+            </div>
+          </article>
         </div>
+      </section>
     </div>
 
-    <!-- Right/Bottom Side: The Mockup -->
-    <div class="flex-grow bg-slate-800 p-2 md:p-8 flex items-center justify-center overflow-hidden h-2/3 md:h-full">
-        
-        <!-- Browser Window Wrapper -->
-        <div class="browser-window bg-white w-full max-w-5xl h-full rounded-xl flex flex-col overflow-hidden border border-slate-600 relative">
-            
-            <!-- Fake Browser Top Bar -->
-            <div class="h-10 bg-slate-200 border-b border-slate-300 flex items-center px-4 gap-2 shrink-0">
-                <div class="w-3 h-3 rounded-full bg-red-400"></div>
-                <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
-                <div class="w-3 h-3 rounded-full bg-green-400"></div>
-                <div class="ml-4 bg-white px-4 py-1 rounded text-xs text-slate-500 flex-grow text-center shadow-sm">
-                    https://shop.example.com
-                </div>
-            </div>
+    <footer class="footer inspectable" data-name="Footer" data-category="Layout" data-desc="Bottom anchor containing secondary links and legal information.">
+      <span>© 2026 Nova Objects</span>
+      <div class="footer-links">
+        <a href="#" data-name="Footer Link" data-category="Inputs & Actions" data-desc="Secondary navigation link to supporting storefront information.">Shipping</a>
+        <a href="#" data-name="Footer Link" data-category="Inputs & Actions" data-desc="Secondary navigation link to supporting storefront information.">Returns</a>
+        <a href="#" data-name="Footer Link" data-category="Inputs & Actions" data-desc="Secondary navigation link to supporting storefront information.">Privacy</a>
+      </div>
+    </footer>
+  </main>
 
-            <!-- Scrollable Webpage Content -->
-            <div class="mockup-scroll overflow-y-auto flex-grow bg-slate-50 relative text-slate-800">
-                
-                <!-- 1. Announcement Bar -->
-                <div class="inspectable bg-indigo-600 text-white text-center py-2 text-xs font-medium" 
-                     data-type="Global Element"
-                     data-title="Announcement Bar"
-                     data-purpose="A thin, highly visible banner at the very top of the page used for urgent notifications, site-wide promotions, or shipping alerts."
-                     data-anatomy="Contrasting background color|Concise copy (e.g., 'Free shipping on orders over $50')|Optional link or close button">
-                    FREE SHIPPING ON ALL ORDERS OVER $50! Shop Now.
-                </div>
-
-                <!-- 2. Main Header / Nav -->
-                <header class="inspectable sticky top-0 z-50 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shadow-sm"
-                        data-type="Structural Element"
-                        data-title="Header (Navigation Bar)"
-                        data-purpose="Anchors the top of the page. It provides brand identity and the primary means of navigating the entire website. Being sticky, it's always accessible."
-                        data-anatomy="Brand Logo|Primary Navigation Links (Categories)|Search Bar|User Action Icons (Profile, Wishlist, Cart)">
-                    
-                    <!-- Logo -->
-                    <div class="text-2xl font-black tracking-tighter text-indigo-600 flex items-center gap-2">
-                        <i class="ph-fill ph-storefront"></i> LUMINA
-                    </div>
-
-                    <!-- Main Nav Links -->
-                    <nav class="hidden md:flex gap-6 font-medium text-sm text-slate-600">
-                        <a href="#" class="hover:text-indigo-600">New Arrivals</a>
-                        <a href="#" class="hover:text-indigo-600">Men</a>
-                        <a href="#" class="hover:text-indigo-600">Women</a>
-                        <a href="#" class="hover:text-indigo-600">Accessories</a>
-                    </nav>
-
-                    <!-- Header Actions -->
-                    <div class="flex items-center gap-4">
-                        <!-- 3. Search Bar -->
-                        <div class="inspectable relative hidden lg:block"
-                             data-type="Interactive Element"
-                             data-title="Search Bar"
-                             data-purpose="Allows users to bypass navigation menus and directly query the site's database for specific products or information."
-                             data-anatomy="Text input field|Placeholder text ('Search products...')|Magnifying glass icon/Submit button">
-                            <input type="text" placeholder="Search products..." class="bg-slate-100 border-none rounded-full py-2 pl-4 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-48">
-                            <i class="ph ph-magnifying-glass absolute right-3 top-2.5 text-slate-400"></i>
-                        </div>
-                        
-                        <i class="ph ph-user text-xl text-slate-600"></i>
-                        <i class="ph ph-heart text-xl text-slate-600"></i>
-                        
-                        <!-- 4. Cart Icon -->
-                        <div class="inspectable relative cursor-pointer"
-                             data-type="Interactive Element"
-                             data-title="Shopping Cart Icon"
-                             data-purpose="Provides persistent access to the user's basket and a visual summary of items ready for checkout."
-                             data-anatomy="Cart/Bag Icon|Dynamic notification badge showing item count">
-                            <i class="ph ph-shopping-cart text-xl text-slate-600"></i>
-                            <span class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">3</span>
-                        </div>
-                    </div>
-                </header>
-
-                <!-- 5. Breadcrumbs -->
-                <div class="inspectable px-6 py-3 text-xs text-slate-500 flex items-center gap-2"
-                     data-type="Navigation Element"
-                     data-title="Breadcrumbs"
-                     data-purpose="Secondary navigation that shows the user's current location in the site hierarchy, allowing them to easily backtrack."
-                     data-anatomy="Clickable parent category links|Separators (usually arrows or slashes)|Current page text (non-clickable)">
-                    <a href="#" class="hover:underline">Home</a>
-                    <i class="ph ph-caret-right text-[10px]"></i>
-                    <a href="#" class="hover:underline">Electronics</a>
-                    <i class="ph ph-caret-right text-[10px]"></i>
-                    <span class="text-slate-800 font-medium">Headphones</span>
-                </div>
-
-                <!-- 6. Hero Carousel -->
-                <section class="inspectable relative h-64 md:h-96 bg-slate-900 overflow-hidden mx-6 rounded-xl"
-                         data-type="Media Container"
-                         data-title="Hero Carousel / Banner"
-                         data-purpose="The prime real estate of a homepage. Used to highlight seasonal promotions, core brand messaging, or featured products. It rotates to save space while showing multiple messages."
-                         data-anatomy="High-quality background image or video|Headline & Subheadline|Primary Call-to-Action (CTA) button|Navigation controls (Arrows, Dots)">
-                    <img src="https://placehold.co/1200x600/1e293b/ffffff?text=Summer+Collection" class="absolute inset-0 w-full h-full object-cover opacity-60" alt="Banner">
-                    <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-                        <h2 class="text-3xl md:text-5xl font-black text-white mb-2 tracking-tight">The Summer Sound</h2>
-                        <p class="text-slate-200 mb-6 max-w-md">Experience crystal clear audio with our new noise-canceling wireless range.</p>
-                        <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-full font-semibold transition-colors shadow-lg">Shop The Collection</button>
-                    </div>
-                    <!-- Carousel Controls -->
-                    <div class="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center text-white backdrop-blur-sm cursor-pointer"><i class="ph ph-caret-left"></i></div>
-                    <div class="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center text-white backdrop-blur-sm cursor-pointer"><i class="ph ph-caret-right"></i></div>
-                    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                        <div class="w-2 h-2 rounded-full bg-white"></div>
-                        <div class="w-2 h-2 rounded-full bg-white/40"></div>
-                        <div class="w-2 h-2 rounded-full bg-white/40"></div>
-                    </div>
-                </section>
-
-                <div class="px-6 py-8 flex gap-8">
-                    
-                    <!-- 7. Sidebar Filter Panel -->
-                    <aside class="inspectable hidden lg:block w-64 shrink-0"
-                           data-type="Organization Panel"
-                           data-title="Sidebar Filter Panel"
-                           data-purpose="Allows users to narrow down a large list of products based on specific criteria, vastly improving the user experience and speed of finding items."
-                           data-anatomy="Category List|Checkboxes (e.g., Brand, Size)|Price Range Sliders|Color Swatches|'Clear All' button">
-                        <h3 class="font-bold text-lg mb-4 border-b pb-2">Filters</h3>
-                        
-                        <div class="mb-6">
-                            <h4 class="font-semibold text-sm mb-3">Categories</h4>
-                            <div class="space-y-2 text-sm text-slate-600">
-                                <label class="flex items-center gap-2"><input type="checkbox" checked class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"> Over-Ear Headphones</label>
-                                <label class="flex items-center gap-2"><input type="checkbox" class="rounded border-slate-300"> Earbuds</label>
-                                <label class="flex items-center gap-2"><input type="checkbox" class="rounded border-slate-300"> Accessories</label>
-                            </div>
-                        </div>
-
-                        <div class="mb-6">
-                            <h4 class="font-semibold text-sm mb-3">Price Range</h4>
-                            <input type="range" class="w-full accent-indigo-600 mb-2">
-                            <div class="flex justify-between text-xs text-slate-500">
-                                <span>$0</span>
-                                <span>$500+</span>
-                            </div>
-                        </div>
-                    </aside>
-
-                    <!-- Product Grid -->
-                    <main class="flex-grow">
-                        <div class="flex justify-between items-center mb-6">
-                            <h2 class="text-xl font-bold">Trending Now</h2>
-                            <select class="text-sm border border-slate-300 rounded px-2 py-1 bg-white outline-none">
-                                <option>Sort by: Featured</option>
-                                <option>Price: Low to High</option>
-                            </select>
-                        </div>
-
-                        <!-- Grid -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                            
-                            <!-- 8. Product Card -->
-                            <div class="inspectable group bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative"
-                                 data-type="Content Container"
-                                 data-title="Product Card"
-                                 data-purpose="A modular, highly structured container that summarizes an individual item. It provides just enough information for a user to decide whether to click for more details or add it straight to their cart."
-                                 data-anatomy="Product Thumbnail Image|Product Title|Pricing Information|Review/Star Rating|'Add to Cart' or 'Quick View' Call-to-Action">
-                                
-                                <div class="aspect-square bg-slate-100 relative overflow-hidden">
-                                    <img src="https://placehold.co/400x400/f8fafc/94a3b8?text=Headphones+A" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                                    <div class="absolute top-2 left-2 bg-rose-500 text-white text-[10px] font-bold px-2 py-1 rounded">SALE</div>
-                                    <div class="absolute top-2 right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center text-slate-400 hover:text-red-500 shadow-sm cursor-pointer transition-colors"><i class="ph-fill ph-heart"></i></div>
-                                </div>
-                                <div class="p-4">
-                                    <div class="flex items-center gap-1 text-yellow-400 text-xs mb-1">
-                                        <i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-half ph-star"></i>
-                                        <span class="text-slate-400 ml-1">(128)</span>
-                                    </div>
-                                    <h3 class="font-semibold text-slate-800 leading-tight mb-1">Sonic Pro Wireless ANC</h3>
-                                    <div class="flex items-center gap-2 mb-3">
-                                        <span class="font-bold text-lg">$199.00</span>
-                                        <span class="text-sm text-slate-400 line-through">$249.00</span>
-                                    </div>
-                                    
-                                    <!-- 9. Primary Button -->
-                                    <button class="inspectable w-full bg-slate-900 hover:bg-indigo-600 text-white py-2 rounded font-medium text-sm transition-colors flex items-center justify-center gap-2"
-                                            data-type="Interactive Element"
-                                            data-title="Primary CTA Button"
-                                            data-purpose="The main driver of conversion. Placed prominently to encourage users to take the most important action on the card (adding to cart or buying)."
-                                            data-anatomy="High contrast background color|Action-oriented label (Add to Cart)|Hover state transition">
-                                        <i class="ph ph-shopping-bag"></i> Add to Cart
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Dummy Card 2 -->
-                            <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                                <div class="aspect-square bg-slate-100 relative">
-                                    <img src="https://placehold.co/400x400/f8fafc/94a3b8?text=Headphones+B" class="w-full h-full object-cover">
-                                </div>
-                                <div class="p-4">
-                                    <h3 class="font-semibold text-slate-800 leading-tight mb-1">BassMaster Studio</h3>
-                                    <span class="font-bold text-lg mb-3 block">$149.00</span>
-                                    <button class="w-full bg-slate-900 text-white py-2 rounded font-medium text-sm">Add to Cart</button>
-                                </div>
-                            </div>
-
-                            <!-- Dummy Card 3 -->
-                            <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                                <div class="aspect-square bg-slate-100 relative">
-                                    <img src="https://placehold.co/400x400/f8fafc/94a3b8?text=Earbuds" class="w-full h-full object-cover">
-                                </div>
-                                <div class="p-4">
-                                    <h3 class="font-semibold text-slate-800 leading-tight mb-1">Aero Buds True Wireless</h3>
-                                    <span class="font-bold text-lg mb-3 block">$89.00</span>
-                                    <button class="w-full bg-slate-900 text-white py-2 rounded font-medium text-sm">Add to Cart</button>
-                                </div>
-                            </div>
-                        </div>
-                    </main>
-                </div>
-
-                <!-- 10. Accordion / Tabs Panel (Simulated product details area) -->
-                <div class="px-6 py-12 bg-white mt-8 border-t border-slate-200">
-                    <div class="max-w-3xl mx-auto">
-                        <div class="inspectable border border-slate-200 rounded-lg overflow-hidden"
-                             data-type="Organization Panel"
-                             data-title="Accordion Panel"
-                             data-purpose="Condenses dense text content (like specs or FAQs) into expandable sections, reducing vertical scroll fatigue and keeping the interface clean."
-                             data-anatomy="Header row with title|Expand/Collapse Icon (+/- or Caret)|Hidden content area that reveals on click">
-                            <div class="flex justify-between items-center p-4 bg-slate-50 border-b border-slate-200 font-semibold cursor-pointer">
-                                Product Specifications <i class="ph ph-minus"></i>
-                            </div>
-                            <div class="p-4 text-sm text-slate-600 bg-white">
-                                <ul class="list-disc pl-4 space-y-1">
-                                    <li>Active Noise Cancellation (ANC) up to 40dB</li>
-                                    <li>Battery life: 30 hours (ANC on), 45 hours (ANC off)</li>
-                                    <li>Bluetooth 5.3 with multipoint connection</li>
-                                </ul>
-                            </div>
-                            <div class="flex justify-between items-center p-4 border-t border-slate-200 font-semibold cursor-pointer hover:bg-slate-50">
-                                Shipping & Returns <i class="ph ph-plus"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 11. Footer -->
-                <footer class="inspectable bg-slate-900 text-slate-300 pt-12 pb-6 px-6"
-                        data-type="Structural Element"
-                        data-title="The Footer"
-                        data-purpose="Anchors the bottom of the page. It serves as a safety net for users who scroll to the end without converting, providing secondary navigation, legal links, and trust signals."
-                        data-anatomy="Secondary Site Map|Newsletter Signup Form|Social Media Icons|Copyright & Legal Links|Payment Badges">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-                        <div>
-                            <h4 class="text-white font-bold text-lg mb-4">LUMINA</h4>
-                            <p class="text-sm text-slate-400">Premium audio equipment for the modern listener.</p>
-                        </div>
-                        <div>
-                            <h4 class="text-white font-bold mb-4">Shop</h4>
-                            <ul class="text-sm space-y-2 text-slate-400">
-                                <li><a href="#" class="hover:text-white">All Products</a></li>
-                                <li><a href="#" class="hover:text-white">Sales</a></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h4 class="text-white font-bold mb-4">Support</h4>
-                            <ul class="text-sm space-y-2 text-slate-400">
-                                <li><a href="#" class="hover:text-white">FAQ</a></li>
-                                <li><a href="#" class="hover:text-white">Contact Us</a></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h4 class="text-white font-bold mb-4">Newsletter</h4>
-                            
-                            <!-- 12. Input Form -->
-                            <div class="inspectable flex"
-                                 data-type="Interactive Element"
-                                 data-title="Form Input & Submit"
-                                 data-purpose="Collects user data (in this case, an email for marketing). Forms are the primary way web pages receive structured data from users."
-                                 data-anatomy="Text Input Field|Visible or Screen-reader Label|Submit/Action Button">
-                                <input type="email" placeholder="Your email" class="bg-slate-800 border border-slate-700 rounded-l px-3 py-2 text-sm w-full outline-none focus:border-indigo-500">
-                                <button class="bg-indigo-600 text-white px-3 py-2 rounded-r text-sm font-medium hover:bg-indigo-700">Subscribe</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border-t border-slate-800 pt-6 text-xs text-center text-slate-500 flex flex-col md:flex-row justify-between items-center">
-                        <p>&copy; 2026 Lumina Audio. All rights reserved.</p>
-                        <div class="flex gap-4 mt-4 md:mt-0 text-lg">
-                            <i class="ph-fill ph-instagram-logo hover:text-white cursor-pointer"></i>
-                            <i class="ph-fill ph-twitter-logo hover:text-white cursor-pointer"></i>
-                            <i class="ph-fill ph-facebook-logo hover:text-white cursor-pointer"></i>
-                        </div>
-                    </div>
-                </footer>
-
-            </div>
-        </div>
+  <aside class="inspector" aria-label="Inspector Panel">
+    <div class="inspector-head">
+      <div class="eyebrow-panel">Annotation Training Tool</div>
+      <div class="inspector-title">Inspector Panel</div>
+      <div class="inspector-sub">Hover over the storefront to identify UI components and understand their role.</div>
+      <div class="status"><span class="dot" id="statusDot"></span><span id="statusText">Waiting for an element…</span></div>
     </div>
+    <div class="details" id="details">
+      <div class="empty" id="emptyState">
+        <div>
+          <div class="empty-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 9h8M8 13h5"/></svg>
+          </div>
+          <strong>Hover over any element on the webpage to inspect it.</strong>
+          <p>Try moving from a product card to its image, then to its heart or Add to Cart button. The most specific annotated element under your pointer will be shown.</p>
+        </div>
+      </div>
+      <div id="inspected" hidden>
+        <div class="info-block">
+          <div class="info-label">Element Name</div>
+          <div class="info-value" id="iName"></div>
+        </div>
+        <div class="info-block">
+          <div class="info-label">UI Category</div>
+          <div class="info-value"><span class="category-pill" id="iCategory"></span></div>
+        </div>
+        <div class="info-block">
+          <div class="info-label">Function / Description</div>
+          <div class="info-value" id="iDesc"></div>
+        </div>
+        <div class="info-block">
+          <div class="info-label">Element Type</div>
+          <div class="info-value" id="iTag"></div>
+        </div>
+        <div class="info-block">
+          <div class="info-label">Annotation Data</div>
+          <div class="data-box" id="iData"></div>
+        </div>
+      </div>
+    </div>
+    <div class="legend">
+      <div class="legend-title">Highlight key</div>
+      <div class="legend-grid">
+        <div class="legend-item"><span class="legend-dot blue"></span>Layout</div>
+        <div class="legend-item"><span class="legend-dot green"></span>Inputs & Actions</div>
+        <div class="legend-item"><span class="legend-dot amber"></span>Media</div>
+        <div class="legend-item"><span class="legend-dot pink"></span>Micro-Interactions</div>
+        <div class="legend-item"><span class="legend-dot purple"></span>Static Content</div>
+      </div>
+    </div>
+  </aside>
+</div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const inspectables = document.querySelectorAll('.inspectable');
-            
-            const defaultState = document.getElementById('default-state');
-            const activeState = document.getElementById('active-state');
-            
-            const infoType = document.getElementById('info-type');
-            const infoTitle = document.getElementById('info-title');
-            const infoPurpose = document.getElementById('info-purpose');
-            const infoAnatomy = document.getElementById('info-anatomy');
+<script>
+(() => {
+  const inspectables = document.querySelectorAll('[data-name]');
+  const empty = document.getElementById('emptyState');
+  const inspected = document.getElementById('inspected');
+  const statusText = document.getElementById('statusText');
+  const statusDot = document.getElementById('statusDot');
 
-            // Function to update the inspector panel
-            const updateInspector = (element) => {
-                const type = element.getAttribute('data-type');
-                const title = element.getAttribute('data-title');
-                const purpose = element.getAttribute('data-purpose');
-                const anatomy = element.getAttribute('data-anatomy');
+  function inspect(el) {
+    const name = el.dataset.name || 'Unnamed element';
+    const category = el.dataset.category || 'Unclassified';
+    const desc = el.dataset.desc || 'No description supplied.';
+    const tag = el.tagName.toLowerCase();
 
-                if (!title) return;
+    document.getElementById('iName').textContent = name;
+    document.getElementById('iCategory').textContent = category;
+    document.getElementById('iDesc').textContent = desc;
+    document.getElementById('iTag').textContent = `<${tag}>`;
+    document.getElementById('iData').textContent =
+      `data-name="${name}"\ndata-category="${category}"\ndata-desc="${desc}"`;
 
-                // Set content
-                infoType.textContent = type;
-                infoTitle.textContent = title;
-                infoPurpose.textContent = purpose;
-                
-                // Parse anatomy string (separated by |) into list items
-                const anatomyParts = anatomy.split('|');
-                infoAnatomy.innerHTML = '';
-                anatomyParts.forEach(part => {
-                    const li = document.createElement('li');
-                    li.textContent = part;
-                    infoAnatomy.appendChild(li);
-                });
+    empty.hidden = true;
+    inspected.hidden = false;
+    statusText.textContent = 'Inspecting element';
+    statusDot.style.background = category === 'Layout' ? '#2563eb' :
+      category === 'Inputs & Actions' ? '#16a34a' :
+      category === 'Media' ? '#d97706' :
+      category === 'Micro-Interactions' ? '#ec4899' : '#9333ea';
+  }
 
-                // Style the category badge based on type
-                infoType.className = 'inline-block px-2 py-1 rounded text-xs font-bold uppercase tracking-wider w-max mb-3';
-                if(type === 'Structural Element' || type === 'Global Element') {
-                    infoType.classList.add('bg-emerald-500/20', 'text-emerald-400');
-                } else if(type === 'Interactive Element') {
-                    infoType.classList.add('bg-purple-500/20', 'text-purple-400');
-                } else if(type === 'Media Container' || type === 'Content Container') {
-                    infoType.classList.add('bg-blue-500/20', 'text-blue-400');
-                } else {
-                    infoType.classList.add('bg-orange-500/20', 'text-orange-400');
-                }
+  // Each annotated element gets its own hover listener. stopPropagation()
+  // prevents an inner annotation from bubbling to an annotated parent.
+  inspectables.forEach(el => {
+    el.addEventListener('mouseenter', (event) => {
+      event.stopPropagation();
+      inspect(el);
+    });
+    el.addEventListener('mouseover', (event) => {
+      event.stopPropagation();
+    });
+  });
 
-                // UI Transition
-                defaultState.classList.add('hidden');
-                defaultState.classList.remove('opacity-100');
-                
-                activeState.classList.remove('hidden');
-                // Small timeout to allow display:block to apply before changing opacity for transition
-                setTimeout(() => {
-                    activeState.classList.remove('opacity-0');
-                    activeState.classList.add('opacity-100');
-                }, 10);
-            };
+  // Reset only when the pointer actually leaves the storefront.
+  document.getElementById('storefront').addEventListener('mouseleave', () => {
+    empty.hidden = false;
+    inspected.hidden = true;
+    statusText.textContent = 'Waiting for an element…';
+    statusDot.style.background = '#475569';
+  });
 
-            // Function to reset the inspector panel
-            const resetInspector = () => {
-                activeState.classList.remove('opacity-100');
-                activeState.classList.add('opacity-0');
-                
-                setTimeout(() => {
-                    activeState.classList.add('hidden');
-                    defaultState.classList.remove('hidden');
-                    setTimeout(() => {
-                        defaultState.classList.add('opacity-100');
-                    }, 10);
-                }, 300);
-            };
-
-            // Add event listeners to all inspectable elements
-            inspectables.forEach(el => {
-                
-                // On Mouse Enter
-                el.addEventListener('mouseover', (e) => {
-                    e.stopPropagation(); // Prevent parent inspectables from triggering
-                    
-                    // Remove highlight from all others (cleanup just in case)
-                    inspectables.forEach(i => i.classList.remove('hovered'));
-                    
-                    // Highlight current
-                    el.classList.add('hovered');
-                    
-                    // Update data
-                    updateInspector(el);
-                });
-
-                // On Mouse Leave
-                el.addEventListener('mouseout', (e) => {
-                    e.stopPropagation();
-                    el.classList.remove('hovered');
-
-                    // Check if we are moving into a parent inspectable element
-                    // If so, trigger the parent's data. Otherwise, reset.
-                    let parentInspectable = el.parentElement.closest('.inspectable');
-                    
-                    if (parentInspectable && e.relatedTarget && parentInspectable.contains(e.relatedTarget)) {
-                        parentInspectable.classList.add('hovered');
-                        updateInspector(parentInspectable);
-                    } else {
-                        resetInspector();
-                    }
-                });
-
-                // Add click listener for mobile/touch devices
-                el.addEventListener('click', (e) => {
-                    e.preventDefault(); // Stop links from actually firing
-                    e.stopPropagation();
-                    
-                    inspectables.forEach(i => i.classList.remove('hovered'));
-                    el.classList.add('hovered');
-                    updateInspector(el);
-                });
-            });
-
-            // If user clicks outside the mockup browser, reset everything
-            document.querySelector('.browser-window').addEventListener('mouseleave', () => {
-               inspectables.forEach(i => i.classList.remove('hovered'));
-               resetInspector();
-            });
-        });
-    </script>
+  // Standard cursor semantics; never use a crosshair cursor.
+  document.querySelectorAll('[data-name]').forEach(el => {
+    const tag = el.tagName.toLowerCase();
+    const category = el.dataset.category;
+    if (category === 'Inputs & Actions' || category === 'Micro-Interactions' ||
+        tag === 'button' || tag === 'a' || tag === 'select' || tag === 'input') {
+      el.style.cursor = 'pointer';
+    } else if (category === 'Static Content' && !['img'].includes(tag)) {
+      el.style.cursor = 'text';
+    } else {
+      el.style.cursor = 'default';
+    }
+  });
+})();
+</script>
 </body>
 </html>
